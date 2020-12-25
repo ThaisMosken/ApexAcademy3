@@ -1,12 +1,14 @@
 trigger CountFullfilledFields on Lead (after insert) {
 
     List<Lead> leadsToUpdate = new List<Lead>();
-    List<Integer> counts = new List<Integer>();
+    //List<Integer> counts = new List<Integer>();
 
     for(Lead newLead : Trigger.new) {
 
         List<String> keyFields = new List<String>();
         List<String> populatedFields = new List<String>();
+        List<String> fieldsLabels = new List<String>();
+        List<String> populatedFieldsLabels = new List<String>();
         Integer countPopulatedFields = 0;
 
         //Considered fields
@@ -25,10 +27,19 @@ trigger CountFullfilledFields on Lead (after insert) {
         keyFields.add(Website);
         keyFields.add(Title);
 
+        //Create list with labels
+        fieldsLabels.add(Lead.FirstName.getDescribe().getLabel());
+        fieldsLabels.add(Lead.LastName.getDescribe().getLabel());
+        fieldsLabels.add(Lead.Email.getDescribe().getLabel());
+        fieldsLabels.add(Lead.Phone.getDescribe().getLabel());
+        fieldsLabels.add(Lead.Website.getDescribe().getLabel());
+        fieldsLabels.add(Lead.Title.getDescribe().getLabel());
+
         //Count populated key fields
-        for (String currentField : keyFields) {
-            if (currentField != null) {
-                populatedFields.add(currentField);
+        for (Integer i = 0; i < keyFields.size(); i++) {
+            if (keyFields.get(i) != null) {
+                populatedFields.add(keyFields.get(i));
+                populatedFieldsLabels.add(fieldsLabels.get(i));
             }
         }
 
@@ -36,21 +47,23 @@ trigger CountFullfilledFields on Lead (after insert) {
         System.debug('For Lead ' + newLead.Id + ', countPopulatedFields = ' + countPopulatedFields);
 
         //Prepare lists to update out of the Trigger.new
-        counts.add(countPopulatedFields);
-        leadsToUpdate.add(newLead);
+        leadsToUpdate.add(
+            new Lead(
+                Id                      = newLead.Id,
+                Key_Fields_Populated__c = countPopulatedFields
+            )
+        );
 
         //If 3 or more fields populated, create task
-        //String objectLabel = SObjectType.YourObjectApiName__c.getLabel();
-        //System.debug(objectLabel);
         if (countPopulatedFields >= 3) {
             
             List<Task> tasksToCreate = new List<Task>();
 
-            for (String currentPopulatedField : populatedFields) {
+            for (Integer i = 0; i < countPopulatedFields; i++) {
                 Task newTask = new Task();
 
-                newTask.WhoId  = newLead.Id;
-                newTask.Subject = 'Verify the ' + currentPopulatedField + ' field';
+                newTask.WhoId   = newLead.Id;
+                newTask.Subject = 'Verify the ' + populatedFieldsLabels.get(i) + ' field';
 
                 tasksToCreate.add(newTask);
             }
