@@ -1,11 +1,9 @@
 @isTest
-private class PicklistCounterTest {
-    @isTest static void createAccount() {
-        Account AccTest = new Account();
-        AccTest.Name = 'AccName';
-        insert AccTest;
+private class CountFullfilledFieldsTest {
+    @isTest static void createLead() {
+        Lead leadTest = new Lead();
 
-        AccTest.Multipicklist_test__c = 'First;Fourth';
-        update AccTest;
+        //..............TEST..............
+
     }
 }

@@ -1,23 +1,63 @@
-CountFullfilledFields
+trigger CountFullfilledFields on Lead (after insert) {
 
-trigger Multitasking on Account (after insert, before update) {
+    List<Lead> leadsToUpdate = new List<Lead>();
+    List<Integer> counts = new List<Integer>();
 
-    for(Account newAccount : Trigger.new) {
-        if (newAccount.Counter__c != null && newAccount.Counter__c > 0) {
+    for(Lead newLead : Trigger.new) {
 
-            List<String> MultipicklistChoices = newAccount.Multipicklist_test__c.split(';');
-            List<Task> newTasks = new List<Task>();
+        List<String> keyFields = new List<String>();
+        List<String> populatedFields = new List<String>();
+        Integer countPopulatedFields = 0;
 
-            for(String currentPicklistItem : MultipicklistChoices) {
-                Task currentTask = new Task();
-                currentTask.Status   = 'Not started';
-                currentTask.Priority = 'Normal';
-                currentTask.Subject  = currentPicklistItem;
-                currentTask.WhatId   = newAccount.Id;
-                newTasks.add(currentTask);
+        //Considered fields
+        String FirstName = newLead.FirstName;
+        String LastName  = newLead.LastName;
+        String Email     = newLead.Email;
+        String Phone     = newLead.Phone;
+        String Website   = newLead.Website;
+        String Title     = newLead.Title;
+
+        //Add fields to list
+        keyFields.add(FirstName);
+        keyFields.add(LastName);
+        keyFields.add(Email);
+        keyFields.add(Phone);
+        keyFields.add(Website);
+        keyFields.add(Title);
+
+        //Count populated key fields
+        for (String currentField : keyFields) {
+            if (currentField != null) {
+                populatedFields.add(currentField);
+            }
+        }
+
+        countPopulatedFields = populatedFields.size();
+        System.debug('For Lead ' + newLead.Id + ', countPopulatedFields = ' + countPopulatedFields);
+
+        //Prepare lists to update out of the Trigger.new
+        counts.add(countPopulatedFields);
+        leadsToUpdate.add(newLead);
+
+        //If 3 or more fields populated, create task
+        //String objectLabel = SObjectType.YourObjectApiName__c.getLabel();
+        //System.debug(objectLabel);
+        if (countPopulatedFields >= 3) {
+            
+            List<Task> tasksToCreate = new List<Task>();
+
+            for (String currentPopulatedField : populatedFields) {
+                Task newTask = new Task();
+
+                newTask.WhoId  = newLead.Id;
+                newTask.Subject = 'Verify the ' + currentPopulatedField + ' field';
+
+                tasksToCreate.add(newTask);
             }
 
-            insert newTasks;     
+            insert tasksToCreate;
         }
     }
+
+    update leadsToUpdate;
 }
