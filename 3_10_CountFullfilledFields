@@ -1,0 +1,23 @@
+CountFullfilledFields
+
+trigger Multitasking on Account (after insert, before update) {
+
+    for(Account newAccount : Trigger.new) {
+        if (newAccount.Counter__c != null && newAccount.Counter__c > 0) {
+
+            List<String> MultipicklistChoices = newAccount.Multipicklist_test__c.split(';');
+            List<Task> newTasks = new List<Task>();
+
+            for(String currentPicklistItem : MultipicklistChoices) {
+                Task currentTask = new Task();
+                currentTask.Status   = 'Not started';
+                currentTask.Priority = 'Normal';
+                currentTask.Subject  = currentPicklistItem;
+                currentTask.WhatId   = newAccount.Id;
+                newTasks.add(currentTask);
+            }
+
+            insert newTasks;     
+        }
+    }
+}

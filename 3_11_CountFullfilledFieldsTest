@@ -1,0 +1,11 @@
+@isTest
+private class PicklistCounterTest {
+    @isTest static void createAccount() {
+        Account AccTest = new Account();
+        AccTest.Name = 'AccName';
+        insert AccTest;
+
+        AccTest.Multipicklist_test__c = 'First;Fourth';
+        update AccTest;
+    }
+}
