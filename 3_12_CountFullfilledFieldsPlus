@@ -4,6 +4,10 @@ trigger CountFullfilledFields on Lead (after insert) {
 
     for(Lead newLead : Trigger.new) {
 
+        if (newLead.Bypass_Triggers__c == true) {
+            break;
+        }
+
         List<String> keyFields = new List<String>();
         List<String> populatedFields = new List<String>();
         List<String> fieldsLabels = new List<String>();

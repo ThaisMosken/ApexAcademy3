@@ -1,15 +1,21 @@
 @isTest
 private class CountFullfilledFieldsTest {
     @isTest static void createLead() {
-        Lead leadTest = new Lead();
+        Lead leadTest1 = new Lead();
+        Lead leadTest2 = new Lead();
 
-        leadTest.FirstName = 'testFirstName';
-        leadTest.LastName  = 'testLastName';
-        leadTest.Company   = 'test';
-        leadTest.Phone     = '(48)48484848';
-        leadTest.Website   = 'website.com.br';
+        leadTest1.FirstName = 'testFirstName';
+        leadTest1.LastName  = 'testLastName';
+        leadTest1.Company   = 'testCompany';
+        leadTest1.Phone     = '(48)48484848';
+        leadTest1.Title     = 'test';
+        leadTest1.Website   = 'test';
 
-        insert leadTest;
-
+        insert leadTest1;
+        
+        leadTest2 = leadTest1.clone();
+        leadTest2.Bypass_Triggers__c = true;
+        
+        insert leadTest2;
     }
 }
