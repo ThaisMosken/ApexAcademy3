@@ -8,6 +8,7 @@ trigger CountFullfilledFields on Lead (after insert) {
         List<String> populatedFields = new List<String>();
         List<String> fieldsLabels = new List<String>();
         List<String> populatedFieldsLabels = new List<String>();
+        List<String> populatedWithTestLabels = new List<String>();
         Integer countPopulatedFields = 0;
 
         //Considered fields
@@ -39,6 +40,11 @@ trigger CountFullfilledFields on Lead (after insert) {
             if (keyFields.get(i) != null) {
                 populatedFields.add(keyFields.get(i));
                 populatedFieldsLabels.add(fieldsLabels.get(i));
+
+                //Create list of fields populated with 'test'
+                if(keyFields.get(i).equalsIgnoreCase('test')) {
+                    populatedWithTestLabels.add(fieldsLabels.get(i));
+                }               
             }
         }
 
@@ -68,6 +74,25 @@ trigger CountFullfilledFields on Lead (after insert) {
             }
 
             insert tasksToCreate;
+        }
+
+        //If there is any field with the exact keywork 'test', create a warning task
+        if (populatedWithTestLabels.size() > 0) {
+
+            String concatenatedTestLabels = populatedWithTestLabels.get(0);
+
+            //Create concatenated string with all fields
+            for(Integer i = 1; i < populatedWithTestLabels.size(); i++) {
+                concatenatedTestLabels = concatenatedTestLabels + ', ' + populatedWithTestLabels.get(i);
+            }
+
+            Task newWarningTask = new Task();
+
+            newWarningTask.WhoId        = newLead.Id;
+            newWarningTask.Subject      = 'WARNING';
+            newWarningTask.Description = 'This Lead contains the TEST keyword in the following key fields: ' + concatenatedTestLabels;
+            
+            insert newWarningTask;
         }
     }
 

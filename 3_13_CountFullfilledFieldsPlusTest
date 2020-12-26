@@ -5,7 +5,7 @@ private class CountFullfilledFieldsTest {
 
         leadTest.FirstName = 'testFirstName';
         leadTest.LastName  = 'testLastName';
-        leadTest.Company   = 'testCompany';
+        leadTest.Company   = 'test';
         leadTest.Phone     = '(48)48484848';
         leadTest.Website   = 'website.com.br';
 
