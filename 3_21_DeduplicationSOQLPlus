@@ -8,34 +8,60 @@ List<Group> dataQualityGroup = [SELECT Id
 
     for (Lead newLead : Trigger.new){
 
+        List<Contact> matchingContacts = new List<Contact>();
+
         if (newLead.Email != null) {
 
             //when lead is created, find all contacts that have the same emails as the lead
-            List<Contact> matchingContacts = [SELECT Id
-                                                FROM Contact
-                                               WHERE Email = :newLead.Email];
-            System.debug(matchingContacts.size() + ' contact(s) found.');
+            List<Contact> matchingContactsEmail = [SELECT Id, FirstName, LastName, Account.Name
+                                                     FROM Contact
+                                                    WHERE Email = :newLead.Email];
+            System.debug(matchingContactsEmail.size() + ' contact(s) found by email.');
 
-            //If at least 1 contact is found, assign lead to the data quality queue
-            if (!matchingContacts.isEmpty()) {
-
-                if (!dataQualityGroup.isEmpty()) {
-                    newLead.OwnerId = dataQualityGroup.get(0).Id;
+            if (!matchingContactsEmail.isEmpty()) {
+                for (Contact currentContact : matchingContactsEmail) {
+                    matchingContacts.add(currentContact);
                 }
-
-                //list the contacts ids in the lead description
-                String dupeContactsMessage = 'Duplicate contacts found:\n';
-                for (Contact currentMatchingContact : matchingContacts) {
-                    dupeContactsMessage += currentMatchingContact.FirstName + ' '
-                                        + currentMatchingContact.LastName + ', '
-                                        + currentMatchingContact.Account.Name + ' ('
-                                        + currentMatchingContact.Id + ')\n';
-                }
-                if (newLead.Description != null) {
-                    dupeContactsMessage += '\n' + newLead.Description;
-                }
-                newLead.Description = dupeContactsMessage;
             }
-        }        
+        }
+
+        if (newLead.FirstName != null && newLead.LastName != null && newLead.Company != null) {
+
+            //when lead is created, find all contacts that have the same name and company as the lead
+            List<Contact> matchingContactsName = [SELECT Id, FirstName, LastName, Account.Name
+                                                FROM Contact
+                                               WHERE FirstName LIKE :newLead.FirstName.left(1) + '%' 
+                                                 AND LastName = :newLead.LastName 
+                                                 AND Account.Name = :newLead.Company];
+            System.debug(matchingContactsName.size() + ' contact(s) found by name and company.');
+
+            if (!matchingContactsName.isEmpty()) {
+                for (Contact currentContact : matchingContactsName) {
+                    matchingContacts.add(currentContact);
+                }
+            }
+        }
+
+        //If at least 1 contact is found
+        if (!matchingContacts.isEmpty()) {
+
+            //assign lead to the data quality queue
+            if (!dataQualityGroup.isEmpty()) {
+                newLead.OwnerId = dataQualityGroup.get(0).Id;
+            }
+
+            //list the contacts ids in the lead description
+            String dupeContactsMessage = 'Duplicate contacts found:\n';
+            for (Contact currentMatchingContact : matchingContacts) {
+                dupeContactsMessage += currentMatchingContact.FirstName + ' '
+                                    + currentMatchingContact.LastName + ', '
+                                    + currentMatchingContact.Account.Name + ' ('
+                                    + currentMatchingContact.Id + ')\n';
+            }
+            if (newLead.Description != null) {
+                dupeContactsMessage += '\n' + newLead.Description;
+            }
+            newLead.Description = dupeContactsMessage;
+        }   
     }
 }
