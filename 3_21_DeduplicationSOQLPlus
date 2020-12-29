@@ -28,10 +28,10 @@ List<Group> dataQualityGroup = [SELECT Id
 
             //when lead is created, find all contacts that have the same name and company as the lead
             List<Contact> matchingContactsName = [SELECT Id, FirstName, LastName, Account.Name
-                                                FROM Contact
-                                               WHERE FirstName LIKE :newLead.FirstName.left(1) + '%' 
-                                                 AND LastName = :newLead.LastName 
-                                                 AND Account.Name = :newLead.Company];
+                                                    FROM Contact
+                                                   WHERE FirstName LIKE :newLead.FirstName.left(1) + '%' 
+                                                     AND LastName = :newLead.LastName 
+                                                     AND Account.Name = :newLead.Company];
             System.debug(matchingContactsName.size() + ' contact(s) found by name and company.');
 
             if (!matchingContactsName.isEmpty()) {
