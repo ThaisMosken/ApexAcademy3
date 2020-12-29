@@ -1,0 +1,47 @@
+  
+trigger CreateComparables on Opportunity (after insert) {
+
+    for (Opportunity newOpp : Trigger.new){
+
+        //Buscar o Industry dentro da Account pois o Trigger.new não traz esta informação
+        Opportunity newOppInfo = [SELECT Account.Industry
+                                    FROM Opportunity
+                                   WHERE Id = :newOpp.Id
+                                   LIMIT 1];
+        System.debug('Amount: ' + newOpp.Amount + ', Industry: ' + newOppInfo.Account.Industry);
+
+        //Encontrar todas as oportunidades que sejam comparáveis pelo critério dado (Amount, Industry, Won)
+        if (newOpp.Amount > 0 && newOppInfo.Account.Industry != null) {
+        
+        Decimal minAmount = newOpp.Amount * 0.9;
+        Decimal maxAmount = newOpp.Amount * 1.1;
+
+            List<Opportunity> comparableOpps = [SELECT Id
+                                                  FROM Opportunity
+                                                 WHERE Amount >= :minAmount
+                                                   AND Amount <= :maxAmount
+                                                   AND Account.Industry = :newOppInfo.Account.Industry
+                                                   AND CloseDate >= LAST_N_DAYS:365
+                                                   AND IsWon = true
+                                                   AND Owner.Position_Start_Date__c <= LAST_N_DAYS:365];
+                                                   AND Id != :newOpp.Id
+            System.debug(comparableOpps.size() + ' Opp(s) found.');
+            
+            //Se alguma opp for encontrada, criar registro no objeto Comparable vinculando a oportunidade base (do trigger) com a oportunidade comparável
+            if (!comparableOpps.isEmpty()) {
+                
+                List<Comparable__c> comparablesToCreate = new List<Comparable__c>();
+
+                for (Opportunity currentComparableOpp : comparableOpps) {
+                    Comparable__c newComparable = new Comparable__c();
+                    newComparable.Base_Opportunity__c       = newOpp.Id;
+                    newComparable.Comparable_Opportunity__c = currentComparableOpp.Id;
+
+                    comparablesToCreate.add(newComparable);
+                }
+
+                insert comparablesToCreate;          
+            }
+        }
+    }
+}

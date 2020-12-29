@@ -1,0 +1,27 @@
+@isTest
+private class DedupeLeadTest {
+    @isTest static void createLead() {
+        Account accTest = new Account();
+        accTest.Name = 'testCompany';
+
+        insert accTest;
+
+        Contact contactTest = new Contact();
+        contactTest.FirstName = 'testFirstName';
+        contactTest.LastName  = 'testLastName';
+        contactTest.Email     = 'test@test.com';
+        contactTest.AccountId   = accTest.Id;
+
+        insert contactTest;
+
+        Lead leadTest = new Lead();
+
+        leadTest.FirstName   = 'testFirstName';
+        leadTest.LastName    = 'testLastName';
+        leadTest.Company     = 'testCompany';
+        leadTest.Email       = 'test@test.com';
+        leadTest.Description = 'testDescription';
+
+        insert leadTest;
+    }
+}
