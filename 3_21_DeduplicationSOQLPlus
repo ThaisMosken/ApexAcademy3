@@ -1,0 +1,41 @@
+trigger DedupeLead on Lead (before insert) {
+
+//Find the Id of the Queue 'Data quality'
+List<Group> dataQualityGroup = [SELECT Id
+                                  FROM Group
+                                 WHERE DeveloperName = 'Data_Quality'
+                                 LIMIT 1];
+
+    for (Lead newLead : Trigger.new){
+
+        if (newLead.Email != null) {
+
+            //when lead is created, find all contacts that have the same emails as the lead
+            List<Contact> matchingContacts = [SELECT Id
+                                                FROM Contact
+                                               WHERE Email = :newLead.Email];
+            System.debug(matchingContacts.size() + ' contact(s) found.');
+
+            //If at least 1 contact is found, assign lead to the data quality queue
+            if (!matchingContacts.isEmpty()) {
+
+                if (!dataQualityGroup.isEmpty()) {
+                    newLead.OwnerId = dataQualityGroup.get(0).Id;
+                }
+
+                //list the contacts ids in the lead description
+                String dupeContactsMessage = 'Duplicate contacts found:\n';
+                for (Contact currentMatchingContact : matchingContacts) {
+                    dupeContactsMessage += currentMatchingContact.FirstName + ' '
+                                        + currentMatchingContact.LastName + ', '
+                                        + currentMatchingContact.Account.Name + ' ('
+                                        + currentMatchingContact.Id + ')\n';
+                }
+                if (newLead.Description != null) {
+                    dupeContactsMessage += '\n' + newLead.Description;
+                }
+                newLead.Description = dupeContactsMessage;
+            }
+        }        
+    }
+}
