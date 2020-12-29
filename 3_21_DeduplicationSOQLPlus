@@ -3,8 +3,7 @@ trigger DedupeLead on Lead (before insert) {
 //Find the Id of the Queue 'Data quality'
 List<Group> dataQualityGroup = [SELECT Id
                                   FROM Group
-                                 WHERE DeveloperName = 'Data_Quality'
-                                 LIMIT 1];
+                                 WHERE DeveloperName = 'Data_Quality'];
 
     for (Lead newLead : Trigger.new){
 
