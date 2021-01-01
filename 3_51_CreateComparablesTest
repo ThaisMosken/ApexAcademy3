@@ -17,7 +17,7 @@ private class CreateComparablesTest {
         System.assertEquals(createdComparable, null);
     }
 
-    @isTest static void createOpp() {
+    @isTest static void multipleComparables() {
         User userTest = new User(
             ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
             LastName               = 'LastName',
