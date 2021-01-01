@@ -1,0 +1,65 @@
+@isTest
+private class DedupeLeadTest {
+    @isTest static void createLeadNoDupes() {
+        String leadOwner = UserInfo.getUserId();
+
+        Lead leadTest = new Lead();
+        leadTest.FirstName   = 'testFirstName';
+        leadTest.LastName    = 'testLastName';
+        leadTest.Company     = 'testCompany';
+        leadTest.Email       = 'test@test.com';
+        leadTest.Description = 'testDescription';
+        leadTest.OwnerId     = leadOwner;
+
+        insert leadTest;
+
+        Lead updatedTestLead = [SELECT OwnerId,
+                                       Description
+								  FROM Lead
+								 WHERE Id = :leadTest.Id];
+
+        System.assertEquals (leadOwner, updatedTestLead.OwnerId);
+        System.assertEquals (leadTest.Description, updatedTestLead.Description);
+    }
+
+    @isTest static void createLeadWithDupes() {
+        String leadOwner = UserInfo.getUserId();
+
+        Account accTest1 = new Account();
+        accTest1.Name = 'testCompany';
+        insert accTest1;
+
+        Contact contactTest1 = new Contact();
+        contactTest1.FirstName = 'testFirstName';
+        contactTest1.LastName  = 'testLastName';
+        contactTest1.Email     = 'test@test.com';
+        contactTest1.AccountId = accTest1.Id;
+        insert contactTest1;
+
+        Contact contactTest2 = contactTest1.clone();
+        insert contactTest2;
+
+        Lead leadTest = new Lead();
+        leadTest.FirstName   = 'testFirstName';
+        leadTest.LastName    = 'testLastName';
+        leadTest.Company     = 'testCompany';
+        leadTest.Email       = 'test@test.com';
+        leadTest.Description = 'testDescription';
+        leadTest.OwnerId     = leadOwner;
+        insert leadTest;
+
+        Lead updatedTestLead = [SELECT OwnerId,
+                                       Description
+								  FROM Lead
+								 WHERE Id = :leadTest.Id];
+
+        Group dataQualityGroup = [SELECT Id
+                                    FROM Group
+                                   WHERE DeveloperName = 'Data_Quality'
+                                   LIMIT 1];
+
+        System.assertEquals (dataQualityGroup.Id, updatedTestLead.OwnerId);
+        System.assert (updatedTestLead.Description.contains(contactTest1.Id));
+        System.assert (updatedTestLead.Description.contains(contactTest2.Id));
+    }
+}
