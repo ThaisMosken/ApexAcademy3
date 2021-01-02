@@ -1,0 +1,18 @@
+trigger OppTeamUpdate on Opportunity (after insert) {
+    for (Opportunity newOpp : Trigger.new){
+
+        //Buscar o manager do owner
+        User ownerInfo = [SELECT ManagerId
+                            FROM User
+                           WHERE Id = :newOpp.OwnerId];
+
+       if (ownerInfo.ManagerId != null) {
+        OpportunityTeamMember newMember = new OpportunityTeamMember(  
+         OpportunityId = newOpp.Id,
+         UserId = ownerInfo.ManagerId,
+         TeamMemberRole = 'Sales Manager'
+        );
+        insert newMember;
+       }
+    }
+}

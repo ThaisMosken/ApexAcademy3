@@ -1,0 +1,84 @@
+@isTest
+private class ClassNameTest {
+ @isTest static void oppFromIC() {
+  User userManager = new User(
+   ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+   LastName               = 'userManager',
+   Email                  = 'userManager@email.com',
+   Username               = 'userManager@email.com' + System.currentTimeMillis(),
+   CompanyName            = 'CompanyName',
+   Title                  = 'Title',
+   Alias                  = 'alias1',
+   TimeZoneSidKey         = 'America/Los_Angeles',
+   EmailEncodingKey       = 'UTF-8',
+   LanguageLocaleKey      = 'en_US',
+   LocaleSidKey           = 'en_US'
+  );
+  insert userManager;
+
+  User userIC = new User(
+   ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+   LastName               = 'userIC',
+   Email                  = 'userIC@email.com',
+   Username               = 'userIC@email.com' + System.currentTimeMillis(),
+   CompanyName            = 'CompanyName',
+   Title                  = 'Title',
+   Alias                  = 'alias2',
+   TimeZoneSidKey         = 'America/Los_Angeles',
+   EmailEncodingKey       = 'UTF-8',
+   LanguageLocaleKey      = 'en_US',
+   LocaleSidKey           = 'en_US',
+   ManagerId              = userManager.Id
+  );
+  insert userIC;
+ 
+  Opportunity newOpp = new Opportunity(
+   Name       = 'OppName',
+   StageName  = 'Prospecting',
+   CloseDate = Date.today(),
+   OwnerId    = userIC.Id
+  );
+  insert newOpp;
+ }
+
+  @isTest static void oppFromManager() {
+   User userManager = new User(
+   ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+   LastName               = 'userManager',
+   Email                  = 'userManager@email.com',
+   Username               = 'userManager@email.com' + System.currentTimeMillis(),
+   CompanyName            = 'CompanyName',
+   Title                  = 'Title',
+   Alias                  = 'alias1',
+   TimeZoneSidKey         = 'America/Los_Angeles',
+   EmailEncodingKey       = 'UTF-8',
+   LanguageLocaleKey      = 'en_US',
+   LocaleSidKey           = 'en_US'
+  );
+  insert userManager;
+
+  User userIC = new User(
+   ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+   LastName               = 'userIC',
+   Email                  = 'userIC@email.com',
+   Username               = 'userIC@email.com' + System.currentTimeMillis(),
+   CompanyName            = 'CompanyName',
+   Title                  = 'Title',
+   Alias                  = 'alias2',
+   TimeZoneSidKey         = 'America/Los_Angeles',
+   EmailEncodingKey       = 'UTF-8',
+   LanguageLocaleKey      = 'en_US',
+   LocaleSidKey           = 'en_US',
+   ManagerId              = userManager.Id
+  );
+  insert userIC;
+
+  Opportunity newOpp = new Opportunity(
+   Name       = 'OppName',
+   StageName  = 'Prospecting',
+   CloseDate = Date.today(),
+   OwnerId    = userManager.Id
+  );
+  insert newOpp;
+ }
+}
