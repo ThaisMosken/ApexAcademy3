@@ -1,0 +1,73 @@
+@isTest
+private class CreateComparablesTest {
+    @isTest static void noComparables() {
+        Opportunity newOpp = new Opportunity();
+        newOpp.Name        = 'comparableOpp1';
+        newOpp.Amount      = 10000;
+        newOpp.StageName   = 'Prospecting';
+        newOpp.CloseDate   = Date.today();
+
+        insert newOpp;
+
+        List<Comparable__c> createdComparable = [SELECT Id
+                                                   FROM Comparable__c
+                                                  WHERE Base_Opportunity__c = :newOpp.Id];
+
+        System.assertEquals(createdComparable.size(), 0);
+    }
+
+    @isTest static void multipleComparables() {
+        User userTest = new User(
+            ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+            LastName               = 'LastName',
+            Email                  = 'email@email.com',
+            Username               = 'email@email.com' + System.currentTimeMillis(),
+            CompanyName            = 'CompanyName',
+            Title                  = 'Title',
+            Alias                  = 'Alias',
+            TimeZoneSidKey         = 'America/Los_Angeles',
+            EmailEncodingKey       = 'UTF-8',
+            LanguageLocaleKey      = 'en_US',
+            LocaleSidKey           = 'en_US',
+            Position_Start_Date__c = Date.today().addDays(-400)
+        );
+        
+        insert userTest;
+
+        Account accTest1 = new Account();
+        accTest1.Name     = 'accTest1';
+        accTest1.Industry = 'Agriculture';
+        insert accTest1;
+
+        Account accTest2 = accTest1.clone();        
+        insert accTest2;
+
+        Opportunity comparableOpp1 = new Opportunity();
+        comparableOpp1.Name        = 'comparableOpp1';
+        comparableOpp1.Amount      = 10000;
+        comparableOpp1.StageName   = 'Closed Won';
+        comparableOpp1.CloseDate   = Date.today().addDays(-30);
+        comparableOpp1.AccountId   = accTest1.Id;
+        comparableOpp1.OwnerId     = userTest.Id;
+
+        Opportunity comparableOpp2 = comparableOpp1.clone();
+
+        Opportunity newOpp = new Opportunity();
+        newOpp.Name        = 'newOpp';
+        newOpp.Amount      = 10000;
+        newOpp.StageName   = 'Prospecting';
+        newOpp.CloseDate   = Date.today();
+        newOpp.AccountId   = accTest2.Id;
+
+        insert comparableOpp1;
+        insert comparableOpp2;
+        insert newOpp;
+
+        List<Comparable__c> createdComparable = [SELECT Id,
+                                                        Comparable_Opportunity__c
+                                                   FROM Comparable__c
+                                                  WHERE Base_Opportunity__c = :newOpp.Id];
+
+        System.assertEquals(createdComparable.size(), 2);
+    }
+}

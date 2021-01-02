@@ -1,0 +1,26 @@
+trigger CloseCases on Case (before insert) {
+
+	for (Case newCase : Trigger.new){
+
+		//Look for Cases associated with the same Contact in the same day
+		List<Case> associatedCasesContact = [SELECT Id
+							  			       FROM Case
+									          WHERE CreatedDate = TODAY
+										        AND ContactId = :newCase.ContactId
+										        AND Id != :newCase.Id];
+		System.debug('Found ' + associatedCasesContact.size() + ' associated Cases by Contact');
+
+		//Look for Cases associated with the same Account in the same day
+		List<Case> associatedCasesAccount = [SELECT Id
+									  		   FROM Case
+										      WHERE CreatedDate = TODAY
+												AND AccountId = :newCase.AccountId
+												AND Id != :newCase.Id];
+		System.debug('Found ' + associatedCasesAccount.size() + ' associated Cases by Account');
+
+		//Set Case to Closed if conditions met
+		if (associatedCasesContact.size() > 2 || associatedCasesAccount.size() > 3) {
+			newCase.Status = 'Closed';
+		}
+	}
+}
