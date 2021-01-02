@@ -39,6 +39,14 @@ private class ClassNameTest {
    OwnerId    = userIC.Id
   );
   insert newOpp;
+
+  List<OpportunityTeamMember> oppMember = [SELECT Id
+                                             FROM OpportunityTeamMember
+                                            WHERE Opportunity.Id = :newOpp.Id
+                                              AND UserId = :userManager.Id
+                                              AND TeamMemberRole = 'Sales Manager'];
+
+  System.assertEquals(1, oppMember.size());
  }
 
   @isTest static void oppFromManager() {
@@ -80,5 +88,13 @@ private class ClassNameTest {
    OwnerId    = userManager.Id
   );
   insert newOpp;
+
+  List<OpportunityTeamMember> oppMember = [SELECT Id
+                                             FROM OpportunityTeamMember
+                                            WHERE Opportunity.Id = :newOpp.Id
+                                              AND UserId = :userManager.Id
+                                              AND TeamMemberRole = 'Sales Manager'];
+
+  System.assertEquals(0, oppMember.size());
  }
 }
