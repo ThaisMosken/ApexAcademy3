@@ -11,7 +11,7 @@ private class CloseCasesTest {
                                    Status
                               FROM Case
                              WHERE Id = :caseTest.ID];
-        System.assertEquals(updatedCase.Status, 'New');
+        System.assertEquals('New', updatedCase.Status);
     }
 
     @isTest static void associatedByContact() {
@@ -41,7 +41,7 @@ private class CloseCasesTest {
                                    Status
                               FROM Case
                              WHERE Id = :caseTest.ID];
-        System.assertEquals(updatedCase.Status, 'Closed');
+        System.assertEquals('Closed', updatedCase.Status);
     }
 
     @isTest static void associatedByAccount() {
@@ -55,11 +55,13 @@ private class CloseCasesTest {
             AccountId = account.Id
         );
         Case oldCase2 = oldCase1.clone();
-        Case oldCase3 = oldCase1.clone();
+        Case oldCase3 = oldCase1.clone();        
+        Case oldCase4 = oldCase1.clone();
 
         insert oldCase1;
         insert oldCase2;
         insert oldCase3;
+        insert oldCase4;
         
         Case caseTest = new Case(
             Origin = 'origin',
@@ -71,6 +73,6 @@ private class CloseCasesTest {
                                    Status
                               FROM Case
                              WHERE Id = :caseTest.ID];
-        System.assertEquals(updatedCase.Status, 'Closed');
+        System.assertEquals('Closed', updatedCase.Status);
     }
 }
