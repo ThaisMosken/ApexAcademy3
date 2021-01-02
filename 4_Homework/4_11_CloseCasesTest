@@ -1,0 +1,76 @@
+@isTest
+private class CloseCasesTest {
+    @isTest static void noAssociatedCase() {
+        Case caseTest = new Case(
+            Origin = 'origin'
+        );
+
+        insert caseTest;
+
+        Case updatedCase = [SELECT Id,
+                                   Status
+                              FROM Case
+                             WHERE Id = :caseTest.ID];
+        System.assertEquals(updatedCase.Status, 'New');
+    }
+
+    @isTest static void associatedByContact() {
+        Contact contact = new Contact(
+            LastName = 'contact'
+        );
+        insert contact;
+        
+        Case oldCase1 = new Case(
+            Origin = 'origin',
+            ContactId = contact.Id
+        );
+        Case oldCase2 = oldCase1.clone();
+        Case oldCase3 = oldCase1.clone();
+
+        insert oldCase1;
+        insert oldCase2;
+        insert oldCase3;
+        
+        Case caseTest = new Case(
+            Origin = 'origin',
+            ContactId = contact.Id
+        );
+        insert caseTest;
+
+        Case updatedCase = [SELECT Id,
+                                   Status
+                              FROM Case
+                             WHERE Id = :caseTest.ID];
+        System.assertEquals(updatedCase.Status, 'Closed');
+    }
+
+    @isTest static void associatedByAccount() {
+        Account account = new Account(
+            Name = 'account'
+        );
+        insert account;
+        
+        Case oldCase1 = new Case(
+            Origin = 'origin',
+            AccountId = account.Id
+        );
+        Case oldCase2 = oldCase1.clone();
+        Case oldCase3 = oldCase1.clone();
+
+        insert oldCase1;
+        insert oldCase2;
+        insert oldCase3;
+        
+        Case caseTest = new Case(
+            Origin = 'origin',
+            AccountId = account.Id
+        );
+        insert caseTest;
+
+        Case updatedCase = [SELECT Id,
+                                   Status
+                              FROM Case
+                             WHERE Id = :caseTest.ID];
+        System.assertEquals(updatedCase.Status, 'Closed');
+    }
+}
