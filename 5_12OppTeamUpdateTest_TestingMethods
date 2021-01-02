@@ -1,0 +1,80 @@
+@isTest
+private class ClassNameTest {
+
+ @TestVisible static List<User> createUsers(Integer amount) {
+  List<User> newUsers = new List<User>();
+
+  for (Integer i = 0; i < amount; i++) {
+   User newUser = new User(
+    ProfileId              = [SELECT Id FROM Profile LIMIT 1].Id,
+    LastName               = 'userManager' + i,
+    Email                  = 'userManager' + i + '@email.com',
+    Username               = 'userManager' + i + '@email.com' + System.currentTimeMillis(),
+    CompanyName            = 'CompanyName',
+    Title                  = 'Title',
+    Alias                  = 'alias1',
+    TimeZoneSidKey         = 'America/Los_Angeles',
+    EmailEncodingKey       = 'UTF-8',
+    LanguageLocaleKey      = 'en_US',
+    LocaleSidKey           = 'en_US'
+   );
+   newUsers.add(newUser);
+  }
+  System.debug(newUsers.size() + ' users created');
+  return newUsers;
+ }
+
+ @isTest static void oppFromIC() {
+  List<User> newUsers = new List<User>();
+  newUsers = ClassNameTest.createUsers(2);
+  System.debug(newUsers.size() + ' user(s) created');
+  
+  User manager = newUsers.get(0);
+  User ic      = newUsers.get(1);
+  insert manager;
+  ic.ManagerId = manager.Id;
+  insert ic;
+ 
+  Opportunity newOpp = new Opportunity(
+   Name       = 'OppName',
+   StageName  = 'Prospecting',
+   CloseDate  = Date.today(),
+   OwnerId    = ic.Id
+  );
+  insert newOpp;
+
+  List<OpportunityTeamMember> oppMember = [SELECT Id
+                                             FROM OpportunityTeamMember
+                                            WHERE Opportunity.Id = :newOpp.Id
+                                              AND UserId = :manager.Id
+                                              AND TeamMemberRole = 'Sales Manager'];
+
+  System.assertEquals(1, oppMember.size());
+ }
+
+  @isTest static void oppFromManager() {
+   List<User> newUsers = new List<User>();
+   newUsers = ClassNameTest.createUsers(1);
+   System.debug(newUsers.size() + ' user(s) created');
+  
+  User manager = newUsers.get(0);
+  manager.ManagerId = null;
+  insert manager;
+
+  Opportunity newOpp = new Opportunity(
+   Name       = 'OppName',
+   StageName  = 'Prospecting',
+   CloseDate  = Date.today(),
+   OwnerId    = manager.Id
+  );
+  insert newOpp;
+
+  List<OpportunityTeamMember> oppMember = [SELECT Id
+                                             FROM OpportunityTeamMember
+                                            WHERE Opportunity.Id = :newOpp.Id
+                                              AND UserId = :manager.Id
+                                              AND TeamMemberRole = 'Sales Manager'];
+
+  System.assertEquals(0, oppMember.size());
+ }
+}
