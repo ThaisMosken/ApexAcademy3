@@ -1,0 +1,22 @@
+trigger ChangeOwnerFromCase on Case (before insert) {
+ for (Case newCase : Trigger.new){
+  //When a case is created, change the contact owner
+  if (newCase.ContactId != null) {
+   Contact contact = [SELECT Id,
+                             OwnerId
+                        FROM Contact
+                       WHERE Id = :newCase.OwnerId];
+   contact.OwnerId = newCase.CreatedById;
+   update contact;
+  }
+  //When a case is created, change the account owner
+  if (newCase.AccountId != null) {
+   Account account = [SELECT Id,
+                             OwnerId
+                        FROM Account
+                       WHERE Id = :newCase.OwnerId];
+   account.OwnerId = newCase.CreatedById;
+   update account;
+  }
+ }
+}

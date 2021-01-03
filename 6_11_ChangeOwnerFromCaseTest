@@ -1,0 +1,80 @@
+@isTest
+private class ChangeOwnerFromCaseTest {
+ @TestVisible static List<Case> createCases(Integer amount) {
+  List<Case> newCases = new List<Case>();
+  for (Integer i = 0; i < amount; i++) {
+   Case newCase = new Case(
+    Origin = 'Phone'
+   );
+   newCases.add(newCase);
+  }
+  //System.debug(newCases.size() + ' case(s) created');
+  return newCases;
+ }
+
+ @TestVisible static List<Contact> createContacts(Integer amount) {
+  List<Contact> newContacts = new List<Contact>();
+  for (Integer i = 0; i < amount; i++) {
+   Contact newContact = new Contact(
+    LastName = 'Contact' + i
+   );
+   newContacts.add(newContact);
+  }
+  //System.debug(newContacts.size() + ' contacts(s) created');
+  return newContacts;
+ }
+
+ @TestVisible static List<Account> createAccounts(Integer amount) {
+  List<Account> newAccounts = new List<Account>();
+  for (Integer i = 0; i < amount; i++) {
+   Account newAccount = new Account(
+    Name = 'AccountName' + i
+   );
+   newAccounts.add(newAccount);
+  }
+  //System.debug(newAccounts.size() + ' account(s) created');
+  return newAccounts;
+ }
+
+ @isTest static void caseBothContactAndAccount() {
+  List<Case> newCases = new List<Case>();
+  newCases = ChangeOwnerFromCaseTest.createCases(1);
+  Case newCase = newCases.get(0);
+  //System.debug('A: ' + newCases.size() + ' newCases created');
+  
+  List<Contact> newContacts = new List<Contact>();
+  newContacts = ChangeOwnerFromCaseTest.createContacts(1);
+  Contact newContact = newContacts.get(0);
+  insert newContact;
+  //System.debug('B: ' + newContacts.size() + ' newContacts created');
+  //System.debug('C: ' + newContact.Id + ' newContact.Id created');
+
+  List<Account> newAccounts = new List<Account>();
+  newAccounts = ChangeOwnerFromCaseTest.createAccounts(1);
+  Account newAccount = newAccounts.get(0);
+  insert newAccount;
+  //System.debug('D: ' + newAccounts.size() + ' newAccounts created');
+  //System.debug('E: ' + newAccount.Id + ' newAccount.Id created');
+
+  newCase.ContactId  = newContact.Id;
+  //System.debug('F: ' + newCase.ContactId + ' newCase.ContactId');
+  //System.debug('F2: ' + newContact.Id + ' newContact.Id');
+
+  newCase.AccountId  = newAccount.Id;
+  //System.debug('G: ' + newCase.AccountId + ' newCase.AccountId');
+  System.debug('G2: ' + newAccount.Id + ' newAccount.Id');
+  insert newCase;
+  System.debug('Id: ' + newCase.Id + ', Contact: ' + newCase.ContactId + ', Account: ' + newCase.AccountId);
+
+  Contact updatedContact = [SELECT OwnerId
+                              FROM Contact
+                             WHERE Id = :newCase.ContactId];
+
+  Account updatedAccount = [SELECT OwnerId
+                              FROM Account
+                             WHERE Id = :newCase.AccountId];
+
+  System.assertEquals(newCase.CreatedById, updatedContact.OwnerId);
+  System.assertEquals(newCase.CreatedById, updatedAccount.OwnerId);
+ }
+}
