@@ -1,0 +1,10 @@
+trigger PhoneUpdate on Account (before update) {
+ for (Account newAccount : Trigger.new){
+     Account oldAccount = [SELECT Id,
+                                  Phone
+                             FROM Account
+                            WHERE Id = :newAccount.Id];
+    add
+
+ }
+}
