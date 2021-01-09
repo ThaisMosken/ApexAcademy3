@@ -1,10 +1,25 @@
-trigger PhoneUpdate on Account (before update) {
+trigger PhoneUpdate on Account (after insert, before update) {
  for (Account newAccount : Trigger.new){
-     Account oldAccount = [SELECT Id,
-                                  Phone
-                             FROM Account
-                            WHERE Id = :newAccount.Id];
-    add
+    //If the Phone was updated/is new - testando oldMap
+    Map<Id, Account> oldMap;
+    if (newAccount.Phone != null && (oldMap == null || oldMap != null && oldMap.get(newAccount.Id).Phone != newAccount.Phone)) {
+        //Find all related contacts
+        List<Contact> relatedContacts = [SELECT Id,
+                                                OtherPhone
+                                           FROM Contact
+                                          WHERE AccountId = :newAccount.Id
+                                            AND MailingCountry = :newAccount.BillingCountry];
+
+        //Update the field OtherPhone for all related contacts
+        if (!relatedContacts.IsEmpty()) {
+          List<Contact> contactsToUpdate = new List<Contact>();
+          for (Contact currentContact : relatedContacts) {
+              currentContact.OtherPhone = newAccount.Phone;
+              contactsToUpdate.add(currentContact);
+          }
+          update contactsToUpdate;
+        }
+    }
 
  }
 }
