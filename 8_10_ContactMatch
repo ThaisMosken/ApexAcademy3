@@ -1,0 +1,18 @@
+trigger ContactMatch on Contact (before insert) {
+ for (Contact newContact : Trigger.new){
+  if (newContact.Email != null && newContact.Email.contains('@')) {
+    //Declarar domínios que serão critério de match
+    String domain = '%' + newContact.Email.split('@').get(1) + '%';
+
+    List<Account> matchedAccount = [SELECT Id,
+                                           Website
+                                      FROM Account
+                                     WHERE Website LIKE :domain
+                                  ORDER BY LastModifiedDate desc];
+    
+    if (!matchedAccount.IsEmpty()) {
+        newContact.AccountId = matchedAccount.get(1).Id;
+    }
+  }
+ }
+}

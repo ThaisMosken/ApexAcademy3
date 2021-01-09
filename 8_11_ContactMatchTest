@@ -1,0 +1,67 @@
+@isTest
+private class ContactMatchTest {
+ 
+ @isTest static void createdContactWithMatch() {
+  Account newAccount1 = new Account(
+      Name    = 'AccountName',
+      Website = 'https://www.match.com'
+  );
+  insert newAccount1;
+  Account newAccount2 = new Account(
+      Name    = 'AccountName',
+      Website = 'http://www.match.com'
+  );
+  insert newAccount2;
+  Account newAccount3 = new Account(
+      Name    = 'AccountName',
+      Website = 'other.com'
+  );
+  insert newAccount3;
+
+  Contact newContact = new Contact(
+      FirstName = 'FirstName',
+      LastName  = 'LastName',
+      Email     = 'email@match.com'
+  );
+  insert newContact;
+  
+  Contact updatedContact = [SELECT Id,
+                                   AccountId
+                              FROM Contact
+                             WHERE Id = :newContact.Id];
+
+  System.assertEquals(newAccount2.Id, updatedContact.AccountId);
+ }
+
+ @isTest static void createdContactNoMatch() {
+  Account newAccount1 = new Account(
+      Name    = 'AccountName',
+      Website = 'https://www.match.com'
+  );
+  insert newAccount1;
+  Account newAccount2 = new Account(
+      Name    = 'AccountName',
+      Website = 'http://www.match.com'
+  );
+  insert newAccount2;
+  Account newAccount3 = new Account(
+      Name    = 'AccountName',
+      Website = 'other.com'
+  );
+  insert newAccount3;
+
+  Contact newContact = new Contact(
+      FirstName = 'FirstName',
+      LastName  = 'LastName',
+      Email     = 'email@nomatch.com'
+  );
+  insert newContact;
+  
+  List<Contact> updatedContact = [SELECT Id,
+                                         AccountId
+                                    FROM Contact
+                                   WHERE Id = :newContact.Id];
+
+  System.assertEquals(null, updatedContact.get(0).AccountId);
+ }
+}
