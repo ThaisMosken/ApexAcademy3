@@ -1,0 +1,61 @@
+@isTest
+private class PhoneUpdateTest {
+ 
+ //Create new contacts
+ @TestVisible static List<Contact> createContacts(Integer amount) {
+  List<Contact> newContacts = new List<Contact>();
+  for (Integer i = 0; i < amount; i++) {
+      Contact newContact = new Contact(
+          FirstName = 'FirstName' + i,
+          LastName  = 'LastName' + i,
+          Email     = 'email' + i + '@test.com'
+      );
+      newContacts.add(newContact);
+  }
+  System.debug(newContacts.size() + ' contacts created');
+  return newContacts;
+ }
+
+ @isTest static void updatedAccount() {
+  Account newAccount = new Account(
+      Name           = 'AccountName',
+      BillingCountry = 'BR'
+  );
+  insert newAccount;
+  List<Contact> newContacts = new List<Contact>();
+  newContacts = PhoneUpdateTest.createContacts(4);
+  System.debug(newContacts.size() + ' contacts(s) created');
+  
+  Contact contactToChange1 = newContacts.get(0);
+  contactToChange1.AccountId = newAccount.Id;
+  contactToChange1.MailingCountry = 'BR';
+  insert contactToChange1;
+  Contact contactToChange2 = newContacts.get(1);
+  contactToChange2.AccountId = newAccount.Id;
+  contactToChange2.MailingCountry = 'BR';
+  insert contactToChange2;
+  Contact contactNoChange3 = newContacts.get(2);
+  contactNoChange3.AccountId = newAccount.Id;
+  contactNoChange3.MailingCountry = 'PE';
+  insert contactNoChange3;
+  Contact contactNoChange4 = newContacts.get(3);
+  contactNoChange4.AccountId = newAccount.Id;
+  contactNoChange4.MailingCountry = 'PE';
+  insert contactNoChange4;
+
+  String newPhone = '99889988'; 
+  newAccount.Phone = newPhone;
+  update newAccount;
+
+  List<Contact> updatedContacts = [SELECT Id,
+                                          OtherPhone
+                                     FROM Contact
+                                    WHERE AccountId = :newAccount.Id
+                                 ORDER BY LastName asc];
+
+  System.assertEquals(newPhone, updatedContacts.get(0).OtherPhone);
+  System.assertEquals(newPhone, updatedContacts.get(1).OtherPhone);
+  System.assertEquals(null, updatedContacts.get(2).OtherPhone);
+  System.assertEquals(null, updatedContacts.get(3).OtherPhone);
+ }
+}
