@@ -2,7 +2,7 @@ trigger PhoneUpdate on Account (after insert, before update) {
  for (Account newAccount : Trigger.new){
     //If the Phone was updated/is new - testando oldMap
     Map<Id, Account> oldMap;
-    if (newAccount.Phone != null && (oldMap == null || oldMap != null && oldMap.get(newAccount.Id).Phone != newAccount.Phone)) {
+    if (newAccount.Phone != null && (oldMap == null || (oldMap != null && oldMap.get(newAccount.Id).Phone != newAccount.Phone))) {
         //Find all related contacts
         List<Contact> relatedContacts = [SELECT Id,
                                                 OtherPhone
