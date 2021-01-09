@@ -1,0 +1,46 @@
+trigger ContactDescription on Opportunity (after insert) {
+ for (Opportunity newOpp : Trigger.new) {
+  System.debug('AccountId: ' + newOpp.AccountId);
+  if (newOpp.AccountId != null) {
+   //Find all contacts related to the Account
+   List<Contact> relatedContacts = [SELECT Id,
+                                           Description
+                                      FROM Contact
+                                     WHERE AccountId = :newOpp.AccountId];
+   System.debug(relatedContacts.size() + ' contact(s) found');
+
+   if (!relatedContacts.IsEmpty()) {
+    User oppCreator = [SELECT Id,
+                             Name
+                        FROM User
+                       WHERE Id = :newOpp.CreatedById];
+    User oppOwner = [SELECT Id,
+                            Name,
+                            Manager.Name
+                       FROM User
+                      WHERE Id = :newOpp.OwnerId];
+
+    //Concatenate description to be added
+    String newDescription = 'Opp creator: ' + oppCreator.Name + '\n' +
+                            'Opp close date: ' + newOpp.CloseDate + '\n' +
+                            'Opp owner: ' + oppOwner.Name;
+    
+    if (newOpp.Owner.Manager != null) {
+     newDescription = newDescription + '\n' + 'Opp manager: ' + oppOwner.Manager.Name;
+    }
+    //Change descriptions
+    List<Contact> contactsToUpdate = new List<Contact>();
+    for (Contact currentContact : relatedContacts) {
+     String fullDescription = newDescription;
+     String oldDescription = currentContact.Description;
+     if (oldDescription != null) {
+      fullDescription = newDescription + '\n' + oldDescription;
+     }
+     currentContact.Description = fullDescription;
+     contactsToUpdate.add(currentContact);
+    }
+    update contactsToUpdate;
+   }
+  }
+ }
+}
