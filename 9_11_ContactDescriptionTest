@@ -1,0 +1,64 @@
+@isTest
+private class ContactMatchTest {
+ 
+ @isTest static void createContacts() {
+  Account newAccount1 = new Account(
+      Name    = 'AccountName'
+  );
+  insert newAccount1;
+  
+  Contact newContactWithDescription = new Contact(
+      FirstName   = 'FirstName',
+      LastName    = 'LastName',
+      AccountId   = newAccount1.Id,
+      Description = 'Description 1'
+  );
+  insert newContact1;
+
+  Contact newContactEmptyDescription = new Contact(
+      FirstName   = 'FirstName',
+      LastName    = 'LastName',
+      AccountId   = newAccount1.Id
+  );
+  insert newContact2;
+
+  Opportunity newOpp = new Opportunity(
+      Name      = 'OppName',
+      StageName = 'Prospecting',
+      CloseDate = Date.today(),
+      AccountId = newAccount1.Id
+  );
+  insert newOpp;
+
+  newOpp = [SELECT Id,
+                   CloseDate,
+                   CreatedBy.Name,
+                   Owner.Name,
+                   Owner.ManagerId
+              FROM Opportunity
+             WHERE Id = :newOpp.Id];
+
+  String ownerInfo = 'Opp creator: ' + newOpp.CreatedBy.Name + '\n' +
+                     'Opp close date: ' + newOpp.CloseDate + '\n' +
+                     'Opp owner: ' + newOpp.Owner.Name;
+  
+  if (newOpp.Owner.ManagerId != null) {
+    User manager = [SELECT Id,
+                           Name
+                      FROM User
+                     WHERE Id = :newOpp.Owner.ManagerId];
+    ownerInfo = ownerInfo + '\n' + 'Opp manager: ' + manager.Name;
+  }
+
+  //ISSO TEM QUE IR DENTRO DE UM FOR
+  //FALTA VER A DESCRIÇÃO DE CADA REGISTRO
+  List<Contact> updatedContacts = [SELECT Id,
+                                          AccountId,
+                                          Description
+                                     FROM Contact
+                                    WHERE AccountId = :newAccount1.Id
+                                 ORDER BY CreatedDate asc];
+
+  System.assertEquals(, updatedContact.get(0).Description);
+ }
+}
