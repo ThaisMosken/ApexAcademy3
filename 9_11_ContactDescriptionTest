@@ -1,5 +1,5 @@
 @isTest
-private class ContactMatchTest {
+private class ContactDescriptionTest {
  
  @isTest static void createContacts() {
   Account newAccount1 = new Account(
@@ -13,14 +13,14 @@ private class ContactMatchTest {
       AccountId   = newAccount1.Id,
       Description = 'Description 1'
   );
-  insert newContact1;
+  insert newContactWithDescription;
 
   Contact newContactEmptyDescription = new Contact(
       FirstName   = 'FirstName',
       LastName    = 'LastName',
       AccountId   = newAccount1.Id
   );
-  insert newContact2;
+  insert newContactEmptyDescription;
 
   Opportunity newOpp = new Opportunity(
       Name      = 'OppName',
@@ -50,15 +50,17 @@ private class ContactMatchTest {
     ownerInfo = ownerInfo + '\n' + 'Opp manager: ' + manager.Name;
   }
 
-  //ISSO TEM QUE IR DENTRO DE UM FOR
-  //FALTA VER A DESCRIÇÃO DE CADA REGISTRO
   List<Contact> updatedContacts = [SELECT Id,
-                                          AccountId,
                                           Description
                                      FROM Contact
                                     WHERE AccountId = :newAccount1.Id
-                                 ORDER BY CreatedDate asc];
+                                 ORDER BY CreatedDate];
+  System.debug(updatedContacts.size() + 'contact(s) found');
 
-  System.assertEquals(, updatedContact.get(0).Description);
+  System.debug('Description: ' + updatedContacts.get(0).Description + ' from contact 0');
+  System.debug('Description: ' + updatedContacts.get(1).Description + ' from contact 1');
+
+  System.assertEquals(ownerInfo + '\n' + newContactWithDescription.Description, updatedContacts.get(0).Description);
+  System.assertEquals(ownerInfo, updatedContacts.get(1).Description);
  }
 }
