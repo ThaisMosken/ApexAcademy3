@@ -1,0 +1,58 @@
+trigger CallableContacts on Contact (after insert, after update, after delete) {
+  
+  Boolean isChanged = false;
+  String accountId;
+  
+  //If the record was deleted, isChanged is true only if the Old Phone wasn't null
+  if (Trigger.IsDelete && Trigger.IsAfter) {
+    for (Contact contact : Trigger.old) {
+      System.debug('Phone: ' + contact.Phone);
+      if (contact.Phone != null) {
+        isChanged = true;
+        accountId = contact.AccountId;
+        System.debug('AccountId: ' + contact.AccountId);
+      }
+    }
+  } else {
+    for (Contact contact : Trigger.new) {
+
+      //If the record was updated, isChanged is true only if the Phone changed from null to a value or from a value to null
+      if (Trigger.IsUpdate) {
+        Contact oldMap = Trigger.oldMap.get(contact.id);
+        System.debug('Old Phone: ' + oldMap.Phone + ', New phone: ' + contact.Phone);
+        if ((oldMap.Phone == null && contact.Phone != null) || (oldMap.Phone != null && contact.Phone == null)) {
+          isChanged = true;
+          accountId = contact.AccountId;
+        }
+      }
+
+      //If the record was deleted, isChanged is true only if the New Phone isn't null
+      if (Trigger.IsInsert && contact.Phone != null) {
+        System.debug('Phone: ' + contact.Phone);
+        isChanged = true;
+        accountId = contact.AccountId;
+      }
+    }
+  }
+
+  //If isChanged is true, count the Callable Contacts
+  if (isChanged = true) {
+    System.debug('Phone: ' + contact.Phone);
+
+    List<Contact> callableContacts = [SELECT Id
+                                        FROM Contact
+                                      WHERE AccountId = :accountId
+                                        AND Phone != null];
+
+    Integer amountContacts = callableContacts.size();
+    
+    Account account = [SELECT Id,
+                              CallableContacts__c
+                        FROM Account
+                        WHERE Id = :accountId];
+
+    account.CallableContacts__c = amountContacts;
+
+    update account;
+  }
+}
