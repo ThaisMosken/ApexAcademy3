@@ -1,0 +1,79 @@
+@isTest
+private class CallableContactsTest {
+ 
+ @isTest static void contactChanges() {
+  Account newAccount = new Account(
+      Name    = 'AccountName'
+  );
+  insert newAccount;
+
+  Account account = [SELECT Id,
+                            CallableContacts__c
+                       FROM Account
+                      WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(null, account.CallableContacts__c);
+
+  Contact newContact1 = new Contact(
+      LastName  = 'LastName',
+      AccountId = newAccount.Id
+  );
+  insert newContact1;
+  
+  account = [SELECT Id,
+                    CallableContacts__c
+                FROM Account
+                WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(0, account.CallableContacts__c);
+
+  Contact newContact2 = new Contact(
+      LastName  = 'LastName',
+      AccountId = newAccount.Id,
+      Phone     = '11111'
+  );
+  insert newContact2;
+  
+  account = [SELECT Id,
+                    CallableContacts__c
+                FROM Account
+                WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(1, account.CallableContacts__c);
+
+  newContact1.Phone = '11111';
+  update newContact1;
+
+  account = [SELECT Id,
+                    CallableContacts__c
+                FROM Account
+                WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(2, account.CallableContacts__c);
+
+  newContact1.Phone = '22222';
+  update newContact1;
+
+  account = [SELECT Id,
+                    CallableContacts__c
+                FROM Account
+                WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(2, account.CallableContacts__c);
+
+  delete newContact1;
+
+  account = [SELECT Id,
+                    CallableContacts__c
+                FROM Account
+                WHERE Id = :newAccount.Id];
+
+  System.debug('Account Id: ' + account.Id + ', Account CallableContacts__c: ' + account.CallableContacts__c);
+  System.assertEquals(1, account.CallableContacts__c);
+ }
+}

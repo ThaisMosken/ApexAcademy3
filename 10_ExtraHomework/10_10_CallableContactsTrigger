@@ -4,9 +4,9 @@ trigger CallableContacts on Contact (after insert, after update, after delete) {
   String accountId;
   
   //If the record was deleted, isChanged is true only if the Old Phone wasn't null
-  if (Trigger.IsDelete && Trigger.IsAfter) {
+  if (Trigger.IsDelete) {
     for (Contact contact : Trigger.old) {
-      System.debug('Phone: ' + contact.Phone);
+      System.debug('Deleted Phone: ' + contact.Phone);
       if (contact.Phone != null) {
         isChanged = true;
         accountId = contact.AccountId;
@@ -23,36 +23,57 @@ trigger CallableContacts on Contact (after insert, after update, after delete) {
         if ((oldMap.Phone == null && contact.Phone != null) || (oldMap.Phone != null && contact.Phone == null)) {
           isChanged = true;
           accountId = contact.AccountId;
+          System.debug('Account: ' + accountId);
         }
       }
 
       //If the record was deleted, isChanged is true only if the New Phone isn't null
       if (Trigger.IsInsert && contact.Phone != null) {
-        System.debug('Phone: ' + contact.Phone);
         isChanged = true;
         accountId = contact.AccountId;
+        System.debug('Inserted Phone: ' + contact.Phone + ', Account: ' + accountId);
       }
     }
   }
 
+
   //If isChanged is true, count the Callable Contacts
-  if (isChanged = true) {
-    System.debug('Phone: ' + contact.Phone);
+  if (isChanged == true) {
+    System.debug('Phone: ' + contact.Phone + ', Account: ' + accountId);
 
     List<Contact> callableContacts = [SELECT Id
                                         FROM Contact
-                                      WHERE AccountId = :accountId
-                                        AND Phone != null];
+                                       WHERE AccountId = :accountId
+                                         AND Phone != null];
 
     Integer amountContacts = callableContacts.size();
     
-    Account account = [SELECT Id,
-                              CallableContacts__c
-                        FROM Account
-                        WHERE Id = :accountId];
+    List<Account> account = [SELECT Id,
+                                    CallableContacts__c
+                               FROM Account
+                              WHERE Id = :accountId];
 
-    account.CallableContacts__c = amountContacts;
-
-    update account;
+    if(!account.IsEmpty()) {
+      Account accountToUpdate = account.get(0);
+      accountToUpdate.CallableContacts__c = amountContacts;
+      update accountToUpdate;
+    }
+  } else {
+    for (Contact contact : Trigger.new) {
+      accountId = contact.AccountId;
+      List<Account> account = [SELECT Id,
+                                      CallableContacts__c
+                                FROM Account
+                                WHERE Id = :accountId];
+    
+      System.debug('Not changed, account list: ' + account.size());
+      if(!account.IsEmpty()) {
+        Account accountToUpdate = account.get(0);
+        if (accountToUpdate.CallableContacts__c == null) {
+          accountToUpdate.CallableContacts__c = 0;
+          update accountToUpdate;
+        }
+      }
+    }
   }
 }
